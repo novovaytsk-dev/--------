@@ -16,6 +16,8 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.utils import timezone
 from datetime import timedelta
+from django.core.mail import EmailMessage          # <-- для писем с UTF-8
+from django.core.exceptions import ValidationError # <-- для отлова ошибок валидации
 from .models import Customer, Driver, Vehicle, Order, Assignment, Payment, UserProfile, OrderStatusHistory
 from .forms import OrderForm, SignUpForm, AssignmentForm
 from . import documents
@@ -51,6 +53,31 @@ def is_customer(user):
 class DispatcherRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         return is_dispatcher(self.request.user)
+
+# ---------- Email-уведомления (с корректной кодировкой) ----------
+def send_status_email(order, old_status, new_status):
+    """Отправляет клиенту уведомление об изменении статуса заказа."""
+    customer = order.customer
+    if not customer.email:
+        return
+    subject = f"Статус заказа №{order.id} изменён"
+    message = (
+        f"Здравствуйте, {customer.name}!\n\n"
+        f"Статус вашего заказа №{order.id} изменён:\n"
+        f"Маршрут: {order.pickup_address} → {order.delivery_address}\n"
+        f"Дата перевозки: {order.requested_date}\n"
+        f"Предыдущий статус: {dict(Order.STATUS_CHOICES).get(old_status, old_status)}\n"
+        f"Новый статус: {order.get_status_display()}\n\n"
+        f"С уважением, Транспортная CRM"
+    )
+    email = EmailMessage(
+        subject=subject,
+        body=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[customer.email],
+    )
+    email.encoding = 'utf-8'
+    email.send(fail_silently=True)
 
 # ---------- Заказы ----------
 class OrderListView(LoginRequiredMixin, DispatcherRequiredMixin, ListView):
@@ -119,6 +146,7 @@ class OrderUpdateView(LoginRequiredMixin, DispatcherRequiredMixin, UpdateView):
                 new_status=new_status,
                 changed_by=self.request.user
             )
+            send_status_email(self.object, old_status, new_status)
         messages.success(self.request, "Заказ обновлён.")
         return response
 
@@ -155,6 +183,7 @@ def assign_order(request, order_id):
                     new_status='assigned',
                     changed_by=request.user
                 )
+                send_status_email(order, 'new', 'assigned')
                 messages.success(request, "Рейс успешно назначен.")
                 return redirect('order_detail', pk=order.id)
             except ValidationError as e:
@@ -182,6 +211,7 @@ def change_order_status(request, assignment_id):
                 new_status=new_status,
                 changed_by=request.user
             )
+            send_status_email(order, old_status, new_status)
             messages.success(request, "Статус обновлён.")
         else:
             messages.error(request, "Недопустимый статус.")
@@ -436,8 +466,6 @@ def download_report(request, report_type):
         return HttpResponse('Неверный тип отчёта', status=400)
 
     df = pd.DataFrame(list(data))
-
-    # Преобразуем все datetime-столбцы, удаляя информацию о часовом поясе
     for col in df.columns:
         if pd.api.types.is_datetime64_any_dtype(df[col]):
             df[col] = df[col].dt.tz_localize(None)
@@ -447,6 +475,7 @@ def download_report(request, report_type):
 
     return response
 
+# ---------- Экспорт документов (путевой лист, счёт, акт) ----------
 @login_required
 @user_passes_test(is_dispatcher)
 def download_document(request, pk, doc_type):

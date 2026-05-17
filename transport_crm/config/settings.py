@@ -131,3 +131,12 @@ YANDEX_GEOCODER_API_KEY = '41a82f63-ccd2-425f-af5e-17ba3cd19dac'
 YANDEX_ROUTING_API_KEY = 'b2819b48-6238-4e4a-bd5c-5a12c409335d'
 
 YANDEX_STATIC_API_KEY = '72491f37-0a15-4d26-81e7-17fd201d6115'
+
+# --- Настройки почты (для разработки используем консольный бэкенд) ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'al.mari4eff@yandex.ru'
+EMAIL_HOST_PASSWORD = 'rlnqzhpcwxyjoope' #rlnqzhpcwxyjoope
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

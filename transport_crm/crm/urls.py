@@ -36,9 +36,11 @@ urlpatterns = [
     path('vehicle/<int:pk>/update/', views.VehicleUpdateView.as_view(), name='vehicle_update'),
     path('vehicle/<int:pk>/delete/', views.VehicleDeleteView.as_view(), name='vehicle_delete'),
 
-    # Назначения и платежи
+    # Назначения и смена статуса водителем
     path('assignments/', views.AssignmentListView.as_view(), name='assignment_list'),
     path('assignment/<int:assignment_id>/change_status/', views.change_order_status, name='change_order_status'),
+
+    # Платежи
     path('payments/', views.PaymentListView.as_view(), name='payment_list'),
 
     # Аутентификация и дашборды
@@ -50,9 +52,10 @@ urlpatterns = [
     path('dashboard/driver/', views.driver_dashboard, name='driver_dashboard'),
     path('dashboard/customer/', views.customer_dashboard, name='customer_dashboard'),
 
-    # Аналитика (новые маршруты)
+    # Аналитика и отчёты
     path('analytics/', views.analytics_dashboard, name='analytics_dashboard'),
     path('analytics/download/<str:report_type>/', views.download_report, name='download_report'),
 
+    # Экспорт документов
     path('order/<int:pk>/document/<str:doc_type>/', views.download_document, name='download_document'),
 ]
