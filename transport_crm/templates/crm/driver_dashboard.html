@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Кабинет водителя{% endblock %}
+{% block content %}
+<h1>Мои рейсы</h1>
+<table class="table table-striped">
+    <thead>
+        <tr><th>Заказ</th><th>Адрес подачи</th><th>Адрес доставки</th><th>Дата</th><th>Статус</th><th>Действия</th></tr>
+    </thead>
+    <tbody>
+        {% for assignment in assignments %}
+        <tr>
+            <td>Заказ №{{ assignment.order.id }}</td>
+            <td>{{ assignment.order.pickup_address }}</td>
+            <td>{{ assignment.order.delivery_address }}</td>
+            <td>{{ assignment.order.requested_date }}</td>
+            <td>{{ assignment.order.get_status_display }}</td>
+            <td>
+                <form method="post" action="{% url 'change_order_status' assignment.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    {% if assignment.order.status == 'assigned' %}
+                        <input type="hidden" name="new_status" value="in_transit">
+                        <button type="submit" class="btn btn-sm btn-success">Начать рейс</button>
+                    {% elif assignment.order.status == 'in_transit' %}
+                        <input type="hidden" name="new_status" value="completed">
+                        <button type="submit" class="btn btn-sm btn-primary">Завершить рейс</button>
+                    {% endif %}
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">Назначенных рейсов нет</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

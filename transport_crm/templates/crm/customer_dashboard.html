@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Мои заказы{% endblock %}
+{% block content %}
+<h1>Мои заказы</h1>
+<a href="#" class="btn btn-success mb-3">+ Новый заказ</a>
+<table class="table table-striped">
+    <thead>
+        <tr><th>ID</th><th>Откуда</th><th>Куда</th><th>Дата</th><th>Статус</th><th>Действия</th></tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ order.pickup_address }}</td>
+            <td>{{ order.delivery_address }}</td>
+            <td>{{ order.requested_date }}</td>
+            <td>{{ order.get_status_display }}</td>
+            <td>
+                <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-info">Детали</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">У вас пока нет заказов</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

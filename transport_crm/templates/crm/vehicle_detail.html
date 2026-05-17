@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Автомобиль {{ vehicle.plate_number }}{% endblock %}
+{% block content %}
+<h1>{{ vehicle.plate_number }} ({{ vehicle.brand }} {{ vehicle.model }})</h1>
+<div class="card">
+    <div class="card-body">
+        <p><strong>Грузоподъёмность:</strong> {{ vehicle.capacity_ton }} т</p>
+        <p><strong>Статус:</strong> {{ vehicle.is_active|yesno:"Активен,Неактивен" }}</p>
+    </div>
+</div>
+<a href="{% url 'vehicle_list' %}" class="btn btn-secondary mt-3">Назад к списку</a>
+{% endblock %}

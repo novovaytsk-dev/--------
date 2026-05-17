@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Водитель {{ driver.first_name }} {{ driver.last_name }}{% endblock %}
+{% block content %}
+<h1>{{ driver.first_name }} {{ driver.last_name }}</h1>
+<div class="card">
+    <div class="card-body">
+        <p><strong>Телефон:</strong> {{ driver.phone }}</p>
+        <p><strong>Номер прав:</strong> {{ driver.license_number }}</p>
+        <p><strong>Дата найма:</strong> {{ driver.hire_date }}</p>
+    </div>
+</div>
+<a href="{% url 'driver_list' %}" class="btn btn-secondary mt-3">Назад к списку</a>
+{% endblock %}

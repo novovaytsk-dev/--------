@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Водители{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Водители</h1>
+    <a href="{% url 'driver_create' %}" class="btn btn-success">+ Добавить водителя</a>
+</div>
+<table class="table table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Фамилия</th>
+            <th>Имя</th>
+            <th>Телефон</th>
+            <th>Дата найма</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for driver in drivers %}
+        <tr>
+            <td>{{ driver.id }}</td>
+            <td>{{ driver.last_name }}</td>
+            <td>{{ driver.first_name }}</td>
+            <td>{{ driver.phone }}</td>
+            <td>{{ driver.hire_date }}</td>
+            <td>
+                <a href="{% url 'driver_detail' driver.id %}" class="btn btn-sm btn-info">👁️</a>
+                <a href="{% url 'driver_update' driver.id %}" class="btn btn-sm btn-secondary">✏️</a>
+                <a href="{% url 'driver_delete' driver.id %}" class="btn btn-sm btn-danger">🗑️</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center">Нет водителей</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if is_paginated %}
+<nav aria-label="Page navigation">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a></li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперёд</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

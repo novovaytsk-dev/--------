@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{% if form.instance.pk %}Редактирование{% else %}Добавление{% endif %} автомобиля{% endblock %}
+{% block content %}
+<h1>{% if form.instance.pk %}Редактирование{% else %}Добавление{% endif %} автомобиля</h1>
+<form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <a href="{% url 'vehicle_list' %}" class="btn btn-outline-secondary">Отмена</a>
+</form>
+{% endblock %}

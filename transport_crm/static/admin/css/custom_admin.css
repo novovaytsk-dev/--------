@@ -1,0 +1,72 @@
+/* ===== Основные переменные Django Admin через CSS-переменные ===== */
+:root {
+    --primary: #F97316;
+    --secondary: #16A34A;
+    --accent: #DC2626;
+    --primary-fg: #fff;
+    --header-bg: linear-gradient(135deg, #F97316, #DC2626);
+    --header-color: white;
+    --breadcrumbs-bg: #16A34A;
+    --button-bg: #F97316;
+    --button-hover-bg: #EA580C;
+    --selected-row: #FFF7ED;
+    --link-fg: #F97316;
+    --link-hover-color: #EA580C;
+}
+
+/* ===== Увеличение шрифта ===== */
+body {
+    font-size: 1.25rem;
+}
+
+#header {
+    background: linear-gradient(135deg, #F97316 0%, #DC2626 100%);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+#branding h1 a {
+    color: rgb(18, 16, 16);
+    font-weight: 700;
+}
+
+.module h2, .module caption {
+    background: #F97316;
+}
+
+div.breadcrumbs {
+    background: #16A34A;
+}
+
+/* Кнопки */
+.button, input[type=submit], input[type=button], .submit-row input {
+    background: #F97316;
+    border-radius: 6px;
+    transition: all 0.3s;
+}
+
+.button:hover, input[type=submit]:hover, input[type=button]:hover {
+    background: #EA580C;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.button.default, input[type=submit].default {
+    background: #16A34A;
+}
+
+.button.default:hover {
+    background: #15803D;
+}
+
+a:link, a:visited {
+    color: #F97316;
+}
+
+a:hover {
+    color: #EA580C;
+}
+
+/* Выделенная строка */
+.row1:hover, .row2:hover {
+    background: #FFF7ED;
+}

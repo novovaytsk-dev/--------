@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Аналитика и отчёты{% endblock %}
+{% block content %}
+<h1>Аналитическая панель</h1>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Выручка по месяцам</h5>
+                {% if revenue_chart %}
+                    <img src="{{ revenue_chart }}" class="img-fluid" alt="График выручки">
+                {% else %}
+                    <p class="text-muted">Нет данных</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Топ-5 клиентов</h5>
+                {% if top_clients_chart %}
+                    <img src="{{ top_clients_chart }}" class="img-fluid" alt="Топ клиентов">
+                {% else %}
+                    <p class="text-muted">Нет данных</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Загрузка водителей</h5>
+                {% if drivers_load_chart %}
+                    <img src="{{ drivers_load_chart }}" class="img-fluid" alt="Загрузка водителей">
+                {% else %}
+                    <p class="text-muted">Нет данных</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Статусы заказов</h5>
+                {% if status_distribution_chart %}
+                    <img src="{{ status_distribution_chart }}" class="img-fluid" alt="Статусы заказов">
+                {% else %}
+                    <p class="text-muted">Нет данных</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr>
+<h3>Экспорт данных</h3>
+<div class="btn-group">
+    <a href="{% url 'download_report' 'orders' %}" class="btn btn-outline-success">Скачать заказы (Excel)</a>
+    <a href="{% url 'download_report' 'customers' %}" class="btn btn-outline-success">Скачать клиентов (Excel)</a>
+    <a href="{% url 'download_report' 'drivers' %}" class="btn btn-outline-success">Скачать водителей (Excel)</a>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Панель диспетчера{% endblock %}
+{% block content %}
+<h1>Диспетчерская панель</h1>
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card p-3 mb-3">
+            <h5>Последние заказы</h5>
+            <ul class="list-group list-group-flush">
+                {% for order in orders %}
+                    <li class="list-group-item">
+                        <a href="{% url 'order_detail' order.id %}">Заказ №{{ order.id }}</a>
+                        - {{ order.customer.name }} ({{ order.get_status_display }})
+                    </li>
+                {% empty %}
+                    <li class="list-group-item">Нет заказов</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <!-- Здесь позже добавим календарь, карту, аналитику -->
+    </div>
+</div>
+<a href="{% url 'order_list' %}" class="btn btn-primary mt-3">Все заказы</a>
+{% endblock %}

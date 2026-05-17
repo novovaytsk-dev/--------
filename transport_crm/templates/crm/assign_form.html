@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Назначить рейс{% endblock %}
+{% block content %}
+<h1>Назначение рейса для заказа №{{ order.id }}</h1>
+<p><strong>Клиент:</strong> {{ order.customer.name }}</p>
+<p><strong>Дата:</strong> {{ order.requested_date }}</p>
+<p><strong>Маршрут:</strong> {{ order.pickup_address }} → {{ order.delivery_address }}</p>
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Назначить</button>
+    <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-secondary">Отмена</a>
+</form>
+{% endblock %}
