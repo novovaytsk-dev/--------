@@ -143,6 +143,7 @@ class Order(models.Model):
         except Exception:
             pass
 
+        # Попытка 2: OSRM (запасной)
         try:
             osrm_url = f"http://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false"
             resp = requests.get(osrm_url, timeout=5)
