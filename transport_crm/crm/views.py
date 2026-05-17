@@ -18,6 +18,7 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Customer, Driver, Vehicle, Order, Assignment, Payment, UserProfile, OrderStatusHistory
 from .forms import OrderForm, SignUpForm, AssignmentForm
+from . import documents
 
 # ---------- Вспомогательные функции проверки ролей ----------
 def is_dispatcher(user):
@@ -445,3 +446,16 @@ def download_report(request, report_type):
         df.to_excel(writer, index=False, sheet_name=report_type)
 
     return response
+
+@login_required
+@user_passes_test(is_dispatcher)
+def download_document(request, pk, doc_type):
+    order = get_object_or_404(Order, pk=pk)
+    if doc_type == 'waybill':
+        return documents.generate_waybill(order)
+    elif doc_type == 'invoice':
+        return documents.generate_invoice(order)
+    elif doc_type == 'act':
+        return documents.generate_act(order)
+    else:
+        return HttpResponse('Неверный тип документа', status=400)

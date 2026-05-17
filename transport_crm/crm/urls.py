@@ -53,4 +53,6 @@ urlpatterns = [
     # Аналитика (новые маршруты)
     path('analytics/', views.analytics_dashboard, name='analytics_dashboard'),
     path('analytics/download/<str:report_type>/', views.download_report, name='download_report'),
+
+    path('order/<int:pk>/document/<str:doc_type>/', views.download_document, name='download_document'),
 ]

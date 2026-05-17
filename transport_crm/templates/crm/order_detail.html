@@ -50,6 +50,15 @@
 </div>
 {% endif %}
 
+{% if order.status == 'completed' %}
+<div class="mt-4">
+    <h5>Документы</h5>
+    <a href="{% url 'download_document' order.id 'invoice' %}" class="btn btn-outline-primary btn-sm">📄 Счёт</a>
+    <a href="{% url 'download_document' order.id 'act' %}" class="btn btn-outline-primary btn-sm">📋 Акт</a>
+    <a href="{% url 'download_document' order.id 'waybill' %}" class="btn btn-outline-primary btn-sm">🚛 Путевой лист</a>
+</div>
+{% endif %}
+
 {% if status_history %}
 <div class="mt-4">
     <h3>История изменений статуса</h3>
