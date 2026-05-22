@@ -134,9 +134,10 @@ YANDEX_STATIC_API_KEY = '72491f37-0a15-4d26-81e7-17fd201d6115'
 
 # --- Настройки почты (для разработки используем консольный бэкенд) ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp-relay.brevo.com'
-EMAIL_PORT = 587
+EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_PORT = 2525
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'ac3a3d001@smtp-brevo.com'
-EMAIL_HOST_PASSWORD = 'bsks27ajUfjrWF9' #bsks27ajUfjrWF9
-DEFAULT_FROM_EMAIL = 'al.mari4eff@yandex.ru'
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = 'al-mar@list.ru'
+EMAIL_HOST_PASSWORD = 'kCdH0SPgsi60E5k1ZC3x'
+DEFAULT_FROM_EMAIL = 'al-mar@list.ru'
