@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Удаление платежа{% endblock %}
+{% block content %}
+<h1>Удалить платёж №{{ payment.id }}?</h1>
+<p>Сумма: {{ payment.amount }} руб. по заказу №{{ payment.order.id }}</p>
+<p>Вы уверены?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Удалить</button>
+    <a href="{% url 'payment_list' %}" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Платёж №{{ payment.id }}{% endblock %}
+{% block content %}
+<h1>Платёж №{{ payment.id }}</h1>
+<div class="card">
+    <div class="card-body">
+        <p><strong>Заказ:</strong> <a href="{% url 'order_detail' payment.order.id %}">Заказ №{{ payment.order.id }}</a></p>
+        <p><strong>Сумма:</strong> {{ payment.amount }} руб.</p>
+        <p><strong>Дата оплаты:</strong> {{ payment.paid_at }}</p>
+        <p><strong>Способ оплаты:</strong> {{ payment.get_method_display }}</p>
+    </div>
+</div>
+<a href="{% url 'payment_list' %}" class="btn btn-secondary mt-3">Назад к списку</a>
+{% endblock %}

@@ -1,4 +1,5 @@
 import io
+import base64
 import urllib.parse
 import matplotlib
 matplotlib.use('Agg')
@@ -21,7 +22,7 @@ from django.core.exceptions import ValidationError
 from .models import Customer, Driver, Vehicle, Order, Assignment, Payment, UserProfile, OrderStatusHistory
 from .forms import OrderForm, SignUpForm, AssignmentForm
 from . import documents
-from crm.bot import send_telegram_message  # импорт нашей синхронной функции
+from crm.bot import send_telegram_message
 
 # ---------- Вспомогательные функции проверки ролей ----------
 def is_dispatcher(user):
@@ -186,7 +187,7 @@ def assign_order(request, order_id):
                 )
                 send_status_email(order, 'new', 'assigned')
 
-                # --- Отправка уведомления водителю в Telegram (синхронно) ---
+                # --- Отправка уведомления водителю в Telegram ---
                 if assignment.driver.telegram_id:
                     send_telegram_message(
                         assignment.driver.telegram_id,
@@ -327,6 +328,40 @@ class PaymentListView(LoginRequiredMixin, DispatcherRequiredMixin, ListView):
     context_object_name = 'payments'
     paginate_by = 10
 
+class PaymentDetailView(LoginRequiredMixin, DispatcherRequiredMixin, DetailView):
+    model = Payment
+    template_name = 'crm/payment_detail.html'
+    context_object_name = 'payment'
+
+class PaymentCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView):
+    model = Payment
+    fields = ['order', 'amount', 'paid_at', 'method']
+    template_name = 'crm/payment_form.html'
+    success_url = reverse_lazy('payment_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, "Платёж добавлен.")
+        return super().form_valid(form)
+
+class PaymentUpdateView(LoginRequiredMixin, DispatcherRequiredMixin, UpdateView):
+    model = Payment
+    fields = ['order', 'amount', 'paid_at', 'method']
+    template_name = 'crm/payment_form.html'
+    success_url = reverse_lazy('payment_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, "Платёж обновлён.")
+        return super().form_valid(form)
+
+class PaymentDeleteView(LoginRequiredMixin, DispatcherRequiredMixin, DeleteView):
+    model = Payment
+    template_name = 'crm/payment_confirm_delete.html'
+    success_url = reverse_lazy('payment_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Платёж удалён.")
+        return super().delete(request, *args, **kwargs)
+
 # ---------- Аутентификация ----------
 def signup_view(request):
     if request.method == 'POST':
@@ -377,11 +412,38 @@ def customer_dashboard(request):
     orders = Order.objects.filter(customer__user=request.user).order_by('-created_at')
     return render(request, 'crm/customer_dashboard.html', {'orders': orders})
 
+# ---------- Оплата заказа клиентом ----------
+@login_required
+@user_passes_test(is_customer)
+def customer_pay_order(request, order_id):
+    order = get_object_or_404(Order, pk=order_id, customer__user=request.user)
+    if order.status != 'completed':
+        messages.error(request, "Заказ ещё не выполнен, оплата невозможна.")
+        return redirect('customer_dashboard')
+    if Payment.objects.filter(order=order).exists():
+        messages.warning(request, "Заказ уже оплачен.")
+        return redirect('customer_dashboard')
+
+    Payment.objects.create(
+        order=order,
+        amount=order.price or 0,
+        paid_at=timezone.now().date(),
+        method='transfer'
+    )
+    messages.success(request, f"Заказ №{order.id} оплачен. Спасибо!")
+    return redirect('customer_dashboard')
+
+# ---------- Детали заказа для клиента ----------
+@login_required
+@user_passes_test(is_customer)
+def customer_order_detail(request, pk):
+    order = get_object_or_404(Order, pk=pk, customer__user=request.user)
+    return render(request, 'crm/customer_order_detail.html', {'order': order})
+
 # ---------- Аналитика и отчёты ----------
 @login_required
 @user_passes_test(is_dispatcher)
 def analytics_dashboard(request):
-    """Главная страница аналитики с отчётами."""
     context = {
         'revenue_chart': _generate_revenue_chart(),
         'top_clients_chart': _generate_top_clients_chart(),
@@ -391,7 +453,6 @@ def analytics_dashboard(request):
     return render(request, 'crm/analytics_dashboard.html', context)
 
 def _generate_revenue_chart():
-    """Выручка по месяцам (линейный график)."""
     orders = Order.objects.filter(status='completed')
     df = pd.DataFrame(list(orders.values('created_at', 'price')))
     if df.empty:
@@ -411,7 +472,6 @@ def _generate_revenue_chart():
     return _fig_to_base64()
 
 def _generate_top_clients_chart():
-    """Топ-5 клиентов по количеству заказов (горизонтальная столбчатая диаграмма)."""
     top_clients = Order.objects.values('customer__name').annotate(total=Count('id')).order_by('-total')[:5]
     df = pd.DataFrame(list(top_clients))
     if df.empty or df['total'].sum() == 0:
@@ -424,7 +484,6 @@ def _generate_top_clients_chart():
     return _fig_to_base64()
 
 def _generate_drivers_load_chart():
-    """Загрузка водителей (круговая диаграмма)."""
     drivers_load = Assignment.objects.filter(order__status__in=['completed', 'in_transit']) \
                                      .values('driver__last_name', 'driver__first_name') \
                                      .annotate(total=Count('id')).order_by('-total')
@@ -439,7 +498,6 @@ def _generate_drivers_load_chart():
     return _fig_to_base64()
 
 def _generate_status_distribution_chart():
-    """Распределение заказов по статусам (круговая диаграмма)."""
     statuses = Order.objects.values('status').annotate(total=Count('id'))
     df = pd.DataFrame(list(statuses))
     if df.empty or df['total'].sum() == 0:
@@ -458,13 +516,12 @@ def _fig_to_base64():
     plt.savefig(buf, format='png', bbox_inches='tight')
     plt.close()
     buf.seek(0)
-    image_base64 = urllib.parse.quote(buf.getvalue().hex(), safe='')
+    image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
     return f'data:image/png;base64,{image_base64}'
 
 @login_required
 @user_passes_test(is_dispatcher)
 def download_report(request, report_type):
-    """Генерация и скачивание отчёта в Excel."""
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = f'attachment; filename="{report_type}_report.xlsx"'
 
@@ -487,7 +544,7 @@ def download_report(request, report_type):
 
     return response
 
-# ---------- Экспорт документов (путевой лист, счёт, акт) ----------
+# ---------- Экспорт документов ----------
 @login_required
 @user_passes_test(is_dispatcher)
 def download_document(request, pk, doc_type):

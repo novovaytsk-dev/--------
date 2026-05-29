@@ -40,10 +40,15 @@ urlpatterns = [
     path('assignments/', views.AssignmentListView.as_view(), name='assignment_list'),
     path('assignment/<int:assignment_id>/change_status/', views.change_order_status, name='change_order_status'),
 
-    # Платежи
+    # Платежи (полный CRUD)
     path('payments/', views.PaymentListView.as_view(), name='payment_list'),
+    path('payment/create/', views.PaymentCreateView.as_view(), name='payment_create'),
+    path('payment/<int:pk>/', views.PaymentDetailView.as_view(), name='payment_detail'),
+    path('payment/<int:pk>/update/', views.PaymentUpdateView.as_view(), name='payment_update'),
+    path('payment/<int:pk>/delete/', views.PaymentDeleteView.as_view(), name='payment_delete'),
 
     # Аутентификация и дашборды
+    path('customer/order/<int:pk>/', views.customer_order_detail, name='customer_order_detail'),
     path('accounts/login/', LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
     path('accounts/signup/', views.signup_view, name='signup'),
@@ -51,6 +56,9 @@ urlpatterns = [
     path('dashboard/dispatcher/', views.dispatcher_dashboard, name='dispatcher_dashboard'),
     path('dashboard/driver/', views.driver_dashboard, name='driver_dashboard'),
     path('dashboard/customer/', views.customer_dashboard, name='customer_dashboard'),
+
+    # Оплата заказа клиентом
+    path('customer/pay/<int:order_id>/', views.customer_pay_order, name='customer_pay_order'),
 
     # Аналитика и отчёты
     path('analytics/', views.analytics_dashboard, name='analytics_dashboard'),

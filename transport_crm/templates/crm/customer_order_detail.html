@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Заказ №{{ order.id }}{% endblock %}
+{% block content %}
+<h1>Заказ №{{ order.id }}</h1>
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Клиент: {{ order.customer.name }}</h5>
+        <p><strong>Телефон:</strong> {{ order.customer.phone }}</p>
+        <p><strong>Откуда:</strong> {{ order.pickup_address }}</p>
+        <p><strong>Куда:</strong> {{ order.delivery_address }}</p>
+        <p><strong>Груз:</strong> {{ order.cargo_description }} ({{ order.weight_ton }} т)</p>
+        <p><strong>Дата:</strong> {{ order.requested_date }}</p>
+        <p><strong>Расстояние:</strong> {{ order.distance_km|default:"—" }} км</p>
+        <p><strong>Статус:</strong> {{ order.get_status_display }}</p>
+        <p><strong>Стоимость:</strong> {{ order.price|default:"—" }} руб.</p>
+    </div>
+</div>
+<a href="{% url 'customer_dashboard' %}" class="btn btn-secondary mt-3">Назад к списку</a>
+{% endblock %}
