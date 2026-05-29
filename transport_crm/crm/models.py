@@ -28,6 +28,7 @@ class Driver(models.Model):
     last_name = models.CharField(max_length=100, verbose_name="Фамилия")
     phone = models.CharField(max_length=20, verbose_name="Телефон")
     license_number = models.CharField(max_length=50, verbose_name="Номер прав")
+    telegram_id = models.BigIntegerField(null=True, blank=True, verbose_name="Telegram ID")
     hire_date = models.DateField(default=date.today, verbose_name="Дата найма")
 
     def __str__(self):
