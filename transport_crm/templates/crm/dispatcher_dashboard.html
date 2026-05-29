@@ -1,55 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Кабинет водителя{% endblock %}
+{% block title %}Панель диспетчера{% endblock %}
 {% block content %}
-<h1>Мои рейсы</h1>
-
-<table class="table table-striped table-hover">
-    <thead class="table-dark">
-        <tr>
-            <th>Заказ</th>
-            <th>Откуда</th>
-            <th>Куда</th>
-            <th>Дата</th>
-            <th>Статус</th>
-            <th>Действия</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for assignment in assignments %}
-        <tr>
-            <td>Заказ №{{ assignment.order.id }}</td>
-            <td>{{ assignment.order.pickup_address|truncatechars:25 }}</td>
-            <td>{{ assignment.order.delivery_address|truncatechars:25 }}</td>
-            <td>{{ assignment.order.requested_date }}</td>
-            <td>{{ assignment.order.get_status_display }}</td>
-            <td>
-                <form method="post" action="{% url 'change_order_status' assignment.id %}" style="display:inline;">
-                    {% csrf_token %}
-                    {% if assignment.order.status == 'assigned' %}
-                        <input type="hidden" name="new_status" value="in_transit">
-                        <button type="submit" class="btn btn-sm btn-success">Начать рейс</button>
-                    {% elif assignment.order.status == 'in_transit' %}
-                        <input type="hidden" name="new_status" value="completed">
-                        <button type="submit" class="btn btn-sm btn-primary">Завершить рейс</button>
-                    {% endif %}
-                </form>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="6" class="text-center">У вас пока нет назначенных рейсов</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-
-<div class="alert alert-info mt-4">
-    🤖 <strong>Telegram-бот для уведомлений</strong><br>
-    Подключитесь к нашему боту, чтобы получать напоминания о рейсах и управлять статусами.<br>
-    1. Найдите в Telegram: <b>@TransportCRMbot</b> (заменить на имя реального бота)<br>
-    2. Отправьте команду <b>/start</b><br>
-    3. Сообщите диспетчеру ваш Telegram ID (бот покажет его в ответе).<br>
-    Диспетчер привяжет ID к вашему профилю, и вы начнёте получать уведомления.
+<h1>Диспетчерская панель</h1>
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card p-3 mb-3">
+            <h5>Последние заказы</h5>
+            <ul class="list-group list-group-flush">
+                {% for order in orders %}
+                    <li class="list-group-item">
+                        <a href="{% url 'order_detail' order.id %}">Заказ №{{ order.id }}</a>
+                        - {{ order.customer.name }} ({{ order.get_status_display }})
+                    </li>
+                {% empty %}
+                    <li class="list-group-item">Нет заказов</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-6">
+    </div>
 </div>
+<a href="{% url 'order_list' %}" class="btn btn-primary mt-3">Все заказы</a>
 {% endblock %}

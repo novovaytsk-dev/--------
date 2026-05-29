@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <title>{% block title %}Транспортная CRM{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/crm/css/custom.css">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'crm/css/custom.css' %}">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-gradient mb-4">
@@ -15,15 +16,16 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">Заказы</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">Клиенты</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'driver_list' %}">Водители</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'vehicle_list' %}">Автомобили</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'assignment_list' %}">Назначения</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'payment_list' %}">Платежи</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'analytics_dashboard' %}">Аналитика</a></li>
-
                     {% if user.is_authenticated %}
+                        {% if user.is_superuser or user.profile.role == 'dispatcher' %}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">Заказы</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">Клиенты</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'driver_list' %}">Водители</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'vehicle_list' %}">Автомобили</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'assignment_list' %}">Назначения</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'payment_list' %}">Платежи</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'analytics_dashboard' %}">Аналитика</a></li>
+                        {% endif %}
                         <li class="nav-item">
                             <span class="navbar-text text-white me-3">
                                 👤 {{ user.username }}
@@ -57,6 +59,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/crm/js/custom.js"></script>
+    <script src="{% static 'crm/js/custom.js' %}"></script>
 </body>
 </html>

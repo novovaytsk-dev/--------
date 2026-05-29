@@ -1,6 +1,4 @@
 import io
-import asyncio          # для запуска асинхронной отправки сообщений
-from crm.bot import send_telegram_message
 import urllib.parse
 import matplotlib
 matplotlib.use('Agg')
@@ -18,11 +16,12 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.utils import timezone
 from datetime import timedelta
-from django.core.mail import EmailMessage          #  для писем с UTF-8
-from django.core.exceptions import ValidationError #  для отлова ошибок валидации
+from django.core.mail import EmailMessage
+from django.core.exceptions import ValidationError
 from .models import Customer, Driver, Vehicle, Order, Assignment, Payment, UserProfile, OrderStatusHistory
 from .forms import OrderForm, SignUpForm, AssignmentForm
 from . import documents
+from crm.bot import send_telegram_message  # импорт нашей синхронной функции
 
 # ---------- Вспомогательные функции проверки ролей ----------
 def is_dispatcher(user):
@@ -56,7 +55,7 @@ class DispatcherRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         return is_dispatcher(self.request.user)
 
-# ---------- Email-уведомления (с корректной кодировкой) ----------
+# ---------- Email-уведомления ----------
 def send_status_email(order, old_status, new_status):
     """Отправляет клиенту уведомление об изменении статуса заказа."""
     customer = order.customer
@@ -187,20 +186,15 @@ def assign_order(request, order_id):
                 )
                 send_status_email(order, 'new', 'assigned')
 
-                # --- Отправка уведомления водителю в Telegram ---
+                # --- Отправка уведомления водителю в Telegram (синхронно) ---
                 if assignment.driver.telegram_id:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    loop.run_until_complete(
-                        send_telegram_message(
-                            assignment.driver.telegram_id,
-                            f"Вам назначен рейс №{order.id}\n"
-                            f"Маршрут: {order.pickup_address} → {order.delivery_address}\n"
-                            f"Дата: {order.requested_date}"
-                        )
+                    send_telegram_message(
+                        assignment.driver.telegram_id,
+                        f"Вам назначен рейс №{order.id}\n"
+                        f"Маршрут: {order.pickup_address} → {order.delivery_address}\n"
+                        f"Дата: {order.requested_date}"
                     )
-                    loop.close()
-
+                # --- конец блока Telegram ---
 
                 messages.success(request, "Рейс успешно назначен.")
                 return redirect('order_detail', pk=order.id)
@@ -276,13 +270,13 @@ class DriverDetailView(LoginRequiredMixin, DispatcherRequiredMixin, DetailView):
 
 class DriverCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView):
     model = Driver
-    fields = ['first_name', 'last_name', 'phone', 'license_number', 'hire_date']
+    fields = ['first_name', 'last_name', 'phone', 'license_number', 'telegram_id', 'hire_date']
     template_name = 'crm/driver_form.html'
     success_url = reverse_lazy('driver_list')
 
 class DriverUpdateView(LoginRequiredMixin, DispatcherRequiredMixin, UpdateView):
     model = Driver
-    fields = ['first_name', 'last_name', 'phone', 'license_number', 'hire_date']
+    fields = ['first_name', 'last_name', 'phone', 'license_number', 'telegram_id', 'hire_date']
     template_name = 'crm/driver_form.html'
     success_url = reverse_lazy('driver_list')
 
