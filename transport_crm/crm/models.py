@@ -6,15 +6,28 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from datetime import date
 from django.contrib.auth.models import User
+from geopy.geocoders import Nominatim
+from geopy.distance import geodesic
 
 class Customer(models.Model):
+    """
+    Модель клиента (заказчика перевозки).
+
+    Attributes:
+        user (User, optional): Связанный системный пользователь.
+        name (str): Название компании или ФИО клиента.
+        phone (str): Контактный телефон.
+        email (str, optional): Email для уведомлений.
+        address (str, optional): Юридический адрес.
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Пользователь")
     name = models.CharField(max_length=200, verbose_name="Название компании / ФИО")
     phone = models.CharField(max_length=20, verbose_name="Телефон")
     email = models.EmailField(blank=True, verbose_name="Email")
     address = models.TextField(blank=True, verbose_name="Адрес")
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Возвращает строковое представление клиента."""
         return self.name
 
     class Meta:
@@ -23,6 +36,18 @@ class Customer(models.Model):
 
 
 class Driver(models.Model):
+    """
+    Модель водителя.
+
+    Attributes:
+        user (User, optional): Связанный системный пользователь.
+        first_name (str): Имя.
+        last_name (str): Фамилия.
+        phone (str): Телефон.
+        license_number (str): Номер водительского удостоверения.
+        telegram_id (int, optional): Telegram ID для отправки уведомлений.
+        hire_date (date): Дата найма.
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Пользователь")
     first_name = models.CharField(max_length=100, verbose_name="Имя")
     last_name = models.CharField(max_length=100, verbose_name="Фамилия")
@@ -31,7 +56,8 @@ class Driver(models.Model):
     telegram_id = models.BigIntegerField(null=True, blank=True, verbose_name="Telegram ID")
     hire_date = models.DateField(default=date.today, verbose_name="Дата найма")
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Возвращает полное имя водителя."""
         return f"{self.first_name} {self.last_name}"
 
     class Meta:
@@ -40,13 +66,24 @@ class Driver(models.Model):
 
 
 class Vehicle(models.Model):
+    """
+    Модель автомобиля.
+
+    Attributes:
+        plate_number (str): Государственный номер.
+        brand (str): Марка.
+        model (str): Модель.
+        capacity_ton (Decimal): Грузоподъёмность в тоннах.
+        is_active (bool): Доступен ли для назначения.
+    """
     plate_number = models.CharField(max_length=20, unique=True, verbose_name="Госномер")
     brand = models.CharField(max_length=100, verbose_name="Марка")
     model = models.CharField(max_length=100, verbose_name="Модель")
     capacity_ton = models.DecimalField(max_digits=6, decimal_places=2, verbose_name="Грузоподъемность, т")
     is_active = models.BooleanField(default=True, verbose_name="Активен")
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Возвращает строку с госномером и маркой-моделью."""
         return f"{self.plate_number} ({self.brand} {self.model})"
 
     class Meta:
@@ -55,13 +92,24 @@ class Vehicle(models.Model):
 
 
 class Tariff(models.Model):
+    """
+    Модель тарифа для расчёта стоимости перевозки.
+
+    Attributes:
+        name (str): Название тарифа.
+        base_price (Decimal): Базовая ставка в рублях.
+        price_per_km (Decimal): Цена за 1 км.
+        price_per_ton (Decimal): Цена за 1 тонну.
+        urgency_coefficient (Decimal): Коэффициент срочности (≥1.0).
+    """
     name = models.CharField(max_length=100, verbose_name="Название тарифа")
     base_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Базовая ставка, руб.")
     price_per_km = models.DecimalField(max_digits=6, decimal_places=2, verbose_name="Цена за 1 км, руб.")
     price_per_ton = models.DecimalField(max_digits=6, decimal_places=2, verbose_name="Цена за 1 тонну, руб.")
     urgency_coefficient = models.DecimalField(max_digits=3, decimal_places=2, default=1.0, verbose_name="Коэффициент срочности")
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Возвращает название тарифа."""
         return self.name
 
     class Meta:
@@ -70,6 +118,25 @@ class Tariff(models.Model):
 
 
 class Order(models.Model):
+    """
+    Модель заказа на перевозку.
+
+    Attributes:
+        customer (Customer): Клиент.
+        pickup_address (str): Адрес подачи.
+        delivery_address (str): Адрес доставки.
+        cargo_description (str): Описание груза.
+        weight_ton (Decimal): Вес в тоннах.
+        distance_km (Decimal, optional): Расстояние в км (вычисляется автоматически).
+        tariff (Tariff, optional): Применённый тариф.
+        price (Decimal, optional): Рассчитанная стоимость.
+        requested_date (date): Желаемая дата перевозки.
+        status (str): Текущий статус.
+        created_at (datetime): Дата создания записи.
+        updated_at (datetime): Дата последнего обновления.
+        pickup_lat, pickup_lon (float, optional): Координаты подачи.
+        delivery_lat, delivery_lon (float, optional): Координаты доставки.
+    """
     STATUS_CHOICES = [
         ('new', 'Новый'),
         ('assigned', 'Назначен'),
@@ -95,8 +162,16 @@ class Order(models.Model):
     delivery_lat = models.FloatField(null=True, blank=True, verbose_name="Широта доставки")
     delivery_lon = models.FloatField(null=True, blank=True, verbose_name="Долгота доставки")
 
-    def _geocode_with_yandex(self, address):
-        """Геокодирование через старый ключ (Геокодер). Возвращает (lat, lon) или None."""
+    def _geocode_with_yandex(self, address: str) -> tuple[float | None, float | None]:
+        """
+        Геокодирует адрес с помощью API Яндекса.
+
+        Args:
+            address (str): Адрес для геокодирования.
+
+        Returns:
+            tuple[float | None, float | None]: Широта и долгота или (None, None) при ошибке.
+        """
         base_url = "https://geocode-maps.yandex.ru/1.x/"
         params = {
             "geocode": address,
@@ -119,14 +194,18 @@ class Order(models.Model):
             print(f"Ошибка геокодирования адреса '{address}':", e)
         return None, None
 
-    def get_route_distance(self, lat1, lon1, lat2, lon2):
+    def get_route_distance(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float | None:
         """
-        Возвращает расстояние в км по автодорогам.
-        Сначала пробует Яндекс.Маршрутизацию с новым ключом.
-        При неудаче – OSRM.
-        Если оба недоступны – возвращает None.
+        Рассчитывает расстояние по дорогам через Яндекс.Маршруты или OSRM.
+
+        Args:
+            lat1, lon1: Координаты начальной точки.
+            lat2, lon2: Координаты конечной точки.
+
+        Returns:
+            float | None: Расстояние в километрах или None, если сервисы недоступны.
         """
-        # Попытка 1: Яндекс Маршрутизация
+        # Попытка через Яндекс.Маршруты
         try:
             url = "https://api.routing.yandex.net/v2/route"
             params = {
@@ -144,7 +223,7 @@ class Order(models.Model):
         except Exception:
             pass
 
-        # Попытка 2: OSRM (запасной)
+        # Резервный OSRM
         try:
             osrm_url = f"http://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false"
             resp = requests.get(osrm_url, timeout=5)
@@ -158,8 +237,10 @@ class Order(models.Model):
 
         return None
 
-    def geocode_and_set_coordinates(self):
-        """Геокодирует адреса и вычисляет дорожное расстояние (без прямой)."""
+    def geocode_and_set_coordinates(self) -> None:
+        """
+        Геокодирует адреса подачи и доставки, затем вычисляет расстояние и заполняет поля координат и distance_km.
+        """
         if self.pickup_address and self.delivery_address:
             self.pickup_lat, self.pickup_lon = self._geocode_with_yandex(self.pickup_address)
             self.delivery_lat, self.delivery_lon = self._geocode_with_yandex(self.delivery_address)
@@ -172,10 +253,13 @@ class Order(models.Model):
                 if road_km is not None:
                     self.distance_km = Decimal(str(road_km))
                 else:
-                    # Оставляем distance_km = None (стоимость не рассчитается)
                     self.distance_km = None
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
+        """
+        Переопределённый метод save: при изменении адресов обновляет координаты и расстояние,
+        затем пересчитывает стоимость.
+        """
         if not self.pk or self._pickup_changed() or self._delivery_changed():
             self.geocode_and_set_coordinates()
         if self.tariff and self.distance_km is not None:
@@ -184,19 +268,27 @@ class Order(models.Model):
             self.price = None
         super().save(*args, **kwargs)
 
-    def _pickup_changed(self):
+    def _pickup_changed(self) -> bool:
+        """Проверяет, изменился ли адрес подачи относительно сохранённого в БД."""
         if not self.pk:
             return True
         old = Order.objects.get(pk=self.pk)
         return old.pickup_address != self.pickup_address
 
-    def _delivery_changed(self):
+    def _delivery_changed(self) -> bool:
+        """Проверяет, изменился ли адрес доставки относительно сохранённого в БД."""
         if not self.pk:
             return True
         old = Order.objects.get(pk=self.pk)
         return old.delivery_address != self.delivery_address
 
-    def calculate_price(self):
+    def calculate_price(self) -> Decimal | None:
+        """
+        Вычисляет стоимость заказа на основе тарифа, расстояния и веса.
+
+        Returns:
+            Decimal | None: Итоговая стоимость или None, если недостаточно данных.
+        """
         if self.tariff and self.distance_km is not None:
             base = self.tariff.base_price
             km_cost = self.tariff.price_per_km * self.distance_km
@@ -206,7 +298,8 @@ class Order(models.Model):
             return total.quantize(Decimal('0.01'))
         return None
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Возвращает строку с номером заказа, клиентом и статусом."""
         return f"Заказ №{self.id} от {self.customer.name} ({self.get_status_display()})"
 
     class Meta:
@@ -216,12 +309,25 @@ class Order(models.Model):
 
 
 class Assignment(models.Model):
+    """
+    Модель назначения: связывает заказ с водителем и автомобилем.
+
+    Attributes:
+        order (Order): Заказ (один-к-одному).
+        driver (Driver, optional): Назначенный водитель.
+        vehicle (Vehicle, optional): Назначенный автомобиль.
+        assigned_at (datetime): Дата и время назначения.
+    """
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='assignment', verbose_name="Заказ")
     driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, verbose_name="Водитель")
     vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True, verbose_name="Автомобиль")
     assigned_at = models.DateTimeField(auto_now_add=True, verbose_name="Назначено")
 
-    def clean(self):
+    def clean(self) -> None:
+        """
+        Проверяет, что водитель и автомобиль не заняты в эту дату другим активным заказом.
+        Генерирует ValidationError при конфликте.
+        """
         if self.order_id and self.driver_id:
             conflicts = Assignment.objects.filter(
                 driver=self.driver,
@@ -241,11 +347,13 @@ class Assignment(models.Model):
             if conflicts.exists():
                 raise ValidationError("Автомобиль уже занят в этот день другим заказом.")
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
+        """Сохраняет назначение, предварительно выполняя валидацию."""
         self.clean()
         super().save(*args, **kwargs)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Возвращает строку с описанием назначения."""
         return f"Назначение: {self.order} → {self.driver} / {self.vehicle}"
 
     class Meta:
@@ -254,13 +362,24 @@ class Assignment(models.Model):
 
 
 class OrderStatusHistory(models.Model):
+    """
+    История изменения статусов заказа.
+
+    Attributes:
+        order (Order): Связанный заказ.
+        old_status (str, optional): Предыдущий статус.
+        new_status (str): Новый статус.
+        changed_by (User, optional): Пользователь, выполнивший изменение.
+        changed_at (datetime): Дата и время изменения.
+    """
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='status_history')
     old_status = models.CharField(max_length=20, choices=Order.STATUS_CHOICES, null=True, blank=True)
     new_status = models.CharField(max_length=20, choices=Order.STATUS_CHOICES)
     changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     changed_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Возвращает строку с описанием изменения статуса."""
         return f"Заказ №{self.order.id}: {self.old_status or '—'} → {self.new_status}"
 
     class Meta:
@@ -270,12 +389,22 @@ class OrderStatusHistory(models.Model):
 
 
 class Payment(models.Model):
+    """
+    Модель платежа по заказу.
+
+    Attributes:
+        order (Order): Заказ, к которому относится платёж.
+        amount (Decimal): Сумма в рублях.
+        paid_at (date): Дата оплаты.
+        method (str): Способ оплаты (cash, card, transfer).
+    """
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='payments', verbose_name="Заказ")
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма")
     paid_at = models.DateField(verbose_name="Дата оплаты")
     method = models.CharField(max_length=50, choices=[('cash', 'Наличные'), ('card', 'Карта'), ('transfer', 'Безнал')], verbose_name="Способ оплаты")
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Возвращает строку с суммой и заказом."""
         return f"Оплата {self.amount} руб. по {self.order}"
 
     class Meta:
@@ -284,6 +413,13 @@ class Payment(models.Model):
 
 
 class UserProfile(models.Model):
+    """
+    Профиль пользователя с ролью.
+
+    Attributes:
+        user (User): Связанный системный пользователь.
+        role (str): Роль (dispatcher, driver, customer).
+    """
     ROLE_CHOICES = [
         ('dispatcher', 'Диспетчер'),
         ('driver', 'Водитель'),
@@ -292,7 +428,8 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer', verbose_name="Роль")
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Возвращает имя пользователя и его роль."""
         return f"{self.user.username} - {self.get_role_display()}"
 
     class Meta:
