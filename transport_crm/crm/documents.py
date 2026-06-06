@@ -1,21 +1,31 @@
+"""
+Модуль генерации документов (путевой лист, счёт, акт) в формате Excel.
+"""
 import io
 from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+from openpyxl.styles import Font, Alignment
 from django.http import HttpResponse
+from .models import Order
 
-def generate_waybill(order):
-    """Путевой лист"""
+def generate_waybill(order: Order) -> HttpResponse:
+    """
+    Генерирует путевой лист для заказа.
+
+    Args:
+        order: Экземпляр заказа.
+
+    Returns:
+        HttpResponse с файлом Excel.
+    """
     wb = Workbook()
     ws = wb.active
     ws.title = "Путевой лист"
 
-    # Заголовок
     ws.merge_cells('A1:F1')
     ws['A1'] = f"ПУТЕВОЙ ЛИСТ №{order.id}"
     ws['A1'].font = Font(bold=True, size=14)
     ws['A1'].alignment = Alignment(horizontal='center')
 
-    # Информация о заказе
     data = [
         ("Дата", order.requested_date.strftime('%d.%m.%Y') if order.requested_date else ""),
         ("Клиент", order.customer.name),
@@ -35,11 +45,9 @@ def generate_waybill(order):
         ws.cell(row=i, column=1, value=label).font = Font(bold=True)
         ws.cell(row=i, column=2, value=value)
 
-    # Сохранение в буфер
     output = io.BytesIO()
     wb.save(output)
     output.seek(0)
-
     response = HttpResponse(
         output,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -48,8 +56,16 @@ def generate_waybill(order):
     return response
 
 
-def generate_invoice(order):
-    """Счёт на оплату"""
+def generate_invoice(order: Order) -> HttpResponse:
+    """
+    Генерирует счёт на оплату для заказа.
+
+    Args:
+        order: Экземпляр заказа.
+
+    Returns:
+        HttpResponse с файлом Excel.
+    """
     wb = Workbook()
     ws = wb.active
     ws.title = "Счёт"
@@ -74,7 +90,6 @@ def generate_invoice(order):
     output = io.BytesIO()
     wb.save(output)
     output.seek(0)
-
     response = HttpResponse(
         output,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -83,8 +98,16 @@ def generate_invoice(order):
     return response
 
 
-def generate_act(order):
-    """Акт выполненных работ"""
+def generate_act(order: Order) -> HttpResponse:
+    """
+    Генерирует акт выполненных работ для заказа.
+
+    Args:
+        order: Экземпляр заказа.
+
+    Returns:
+        HttpResponse с файлом Excel.
+    """
     wb = Workbook()
     ws = wb.active
     ws.title = "Акт"
@@ -109,7 +132,6 @@ def generate_act(order):
     output = io.BytesIO()
     wb.save(output)
     output.seek(0)
-
     response = HttpResponse(
         output,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
