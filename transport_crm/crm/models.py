@@ -294,7 +294,7 @@ class Order(models.Model):
             km_cost = self.tariff.price_per_km * self.distance_km
             ton_cost = self.tariff.price_per_ton * Decimal(str(self.weight_ton))
             total = base + km_cost + ton_cost
-            total = total * self.tariff.urgency_coefficient
+            total = total * Decimal(self.tariff.urgency_coefficient)
             return total.quantize(Decimal('0.01'))
         return None
 
