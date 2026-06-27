@@ -355,7 +355,7 @@ class CustomerDetailView(LoginRequiredMixin, DispatcherRequiredMixin, DetailView
 class CustomerCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView):
     """Добавление нового клиента."""
     model = Customer
-    form_class = CustomerForm          # ← заменили fields на form_class
+    form_class = CustomerForm         
     template_name = 'crm/customer_form.html'
     success_url = reverse_lazy('customer_list')
 
@@ -363,7 +363,7 @@ class CustomerCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView
 class CustomerUpdateView(LoginRequiredMixin, DispatcherRequiredMixin, UpdateView):
     """Редактирование данных клиента."""
     model = Customer
-    form_class = CustomerForm          # ← заменили fields на form_class
+    form_class = CustomerForm          
     template_name = 'crm/customer_form.html'
     success_url = reverse_lazy('customer_list')
 
@@ -431,7 +431,7 @@ class VehicleDetailView(LoginRequiredMixin, DispatcherRequiredMixin, DetailView)
 class VehicleCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView):
     """Добавление нового автомобиля."""
     model = Vehicle
-    form_class = VehicleForm          # ← заменили fields на form_class
+    form_class = VehicleForm         
     template_name = 'crm/vehicle_form.html'
     success_url = reverse_lazy('vehicle_list')
 
@@ -439,7 +439,7 @@ class VehicleCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView)
 class VehicleUpdateView(LoginRequiredMixin, DispatcherRequiredMixin, UpdateView):
     """Редактирование автомобиля."""
     model = Vehicle
-    form_class = VehicleForm          # ← заменили fields на form_class
+    form_class = VehicleForm      
     template_name = 'crm/vehicle_form.html'
     success_url = reverse_lazy('vehicle_list')
 
@@ -479,7 +479,7 @@ class PaymentDetailView(LoginRequiredMixin, DispatcherRequiredMixin, DetailView)
 class PaymentCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView):
     """Добавление нового платежа (диспетчером)."""
     model = Payment
-    form_class = PaymentForm          # ← заменили fields на form_class
+    form_class = PaymentForm       
     template_name = 'crm/payment_form.html'
     success_url = reverse_lazy('payment_list')
 
@@ -491,7 +491,7 @@ class PaymentCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView)
 class PaymentUpdateView(LoginRequiredMixin, DispatcherRequiredMixin, UpdateView):
     """Редактирование платежа."""
     model = Payment
-    form_class = PaymentForm          # ← заменили fields на form_class
+    form_class = PaymentForm       
     template_name = 'crm/payment_form.html'
     success_url = reverse_lazy('payment_list')
 
