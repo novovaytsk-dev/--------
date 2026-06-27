@@ -8,7 +8,7 @@ class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
         fields = ['customer', 'pickup_address', 'delivery_address',
-                  'cargo_description', 'weight_ton', 'tariff', 'requested_date', 'status']
+                  'cargo_description', 'weight_ton', 'distance_km', 'tariff', 'requested_date', 'status']
 
     def clean_requested_date(self):
         requested_date = self.cleaned_data['requested_date']
@@ -33,7 +33,26 @@ class AssignmentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Показываем всех водителей (без фильтрации по пользователю)
         self.fields['driver'].queryset = Driver.objects.all()
-        # Показываем только активные автомобили
         self.fields['vehicle'].queryset = Vehicle.objects.filter(is_active=True)
+
+
+class DriverForm(forms.ModelForm):
+    """Форма для создания/редактирования водителя с HTML5-валидацией."""
+    class Meta:
+        model = Driver
+        fields = ['first_name', 'last_name', 'phone', 'license_number', 'telegram_id', 'hire_date']
+        widgets = {
+            'phone': forms.TextInput(attrs={
+                'pattern': r'\+7\d{10}',
+                'title': 'Формат: +7XXXXXXXXXX (11 цифр)',
+                'required': True,
+                'placeholder': '+79991234567'
+            }),
+            'license_number': forms.TextInput(attrs={
+                'pattern': r'[A-Za-z0-9]+',
+                'title': 'Только латинские буквы и цифры',
+                'required': True,
+                'placeholder': 'A1B2C3'
+            }),
+        }

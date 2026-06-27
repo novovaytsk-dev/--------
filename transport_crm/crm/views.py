@@ -24,7 +24,10 @@ from .models import (
     Customer, Driver, Vehicle, Order, Assignment, Payment,
     UserProfile, OrderStatusHistory
 )
-from .forms import OrderForm, SignUpForm, AssignmentForm
+from .forms import (
+    OrderForm, SignUpForm, AssignmentForm, DriverForm,
+    CustomerForm, VehicleForm, PaymentForm
+)
 from . import documents
 from crm.bot import send_telegram_message
 
@@ -352,7 +355,7 @@ class CustomerDetailView(LoginRequiredMixin, DispatcherRequiredMixin, DetailView
 class CustomerCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView):
     """Добавление нового клиента."""
     model = Customer
-    fields = ['name', 'phone', 'email', 'address']
+    form_class = CustomerForm          # ← заменили fields на form_class
     template_name = 'crm/customer_form.html'
     success_url = reverse_lazy('customer_list')
 
@@ -360,7 +363,7 @@ class CustomerCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView
 class CustomerUpdateView(LoginRequiredMixin, DispatcherRequiredMixin, UpdateView):
     """Редактирование данных клиента."""
     model = Customer
-    fields = ['name', 'phone', 'email', 'address']
+    form_class = CustomerForm          # ← заменили fields на form_class
     template_name = 'crm/customer_form.html'
     success_url = reverse_lazy('customer_list')
 
@@ -390,7 +393,7 @@ class DriverDetailView(LoginRequiredMixin, DispatcherRequiredMixin, DetailView):
 class DriverCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView):
     """Добавление нового водителя."""
     model = Driver
-    fields = ['first_name', 'last_name', 'phone', 'license_number', 'telegram_id', 'hire_date']
+    form_class = DriverForm
     template_name = 'crm/driver_form.html'
     success_url = reverse_lazy('driver_list')
 
@@ -398,7 +401,7 @@ class DriverCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView):
 class DriverUpdateView(LoginRequiredMixin, DispatcherRequiredMixin, UpdateView):
     """Редактирование профиля водителя."""
     model = Driver
-    fields = ['first_name', 'last_name', 'phone', 'license_number', 'telegram_id', 'hire_date']
+    form_class = DriverForm
     template_name = 'crm/driver_form.html'
     success_url = reverse_lazy('driver_list')
 
@@ -428,7 +431,7 @@ class VehicleDetailView(LoginRequiredMixin, DispatcherRequiredMixin, DetailView)
 class VehicleCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView):
     """Добавление нового автомобиля."""
     model = Vehicle
-    fields = ['plate_number', 'brand', 'model', 'capacity_ton', 'is_active']
+    form_class = VehicleForm          # ← заменили fields на form_class
     template_name = 'crm/vehicle_form.html'
     success_url = reverse_lazy('vehicle_list')
 
@@ -436,7 +439,7 @@ class VehicleCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView)
 class VehicleUpdateView(LoginRequiredMixin, DispatcherRequiredMixin, UpdateView):
     """Редактирование автомобиля."""
     model = Vehicle
-    fields = ['plate_number', 'brand', 'model', 'capacity_ton', 'is_active']
+    form_class = VehicleForm          # ← заменили fields на form_class
     template_name = 'crm/vehicle_form.html'
     success_url = reverse_lazy('vehicle_list')
 
@@ -476,7 +479,7 @@ class PaymentDetailView(LoginRequiredMixin, DispatcherRequiredMixin, DetailView)
 class PaymentCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView):
     """Добавление нового платежа (диспетчером)."""
     model = Payment
-    fields = ['order', 'amount', 'paid_at', 'method']
+    form_class = PaymentForm          # ← заменили fields на form_class
     template_name = 'crm/payment_form.html'
     success_url = reverse_lazy('payment_list')
 
@@ -488,7 +491,7 @@ class PaymentCreateView(LoginRequiredMixin, DispatcherRequiredMixin, CreateView)
 class PaymentUpdateView(LoginRequiredMixin, DispatcherRequiredMixin, UpdateView):
     """Редактирование платежа."""
     model = Payment
-    fields = ['order', 'amount', 'paid_at', 'method']
+    form_class = PaymentForm          # ← заменили fields на form_class
     template_name = 'crm/payment_form.html'
     success_url = reverse_lazy('payment_list')
 
