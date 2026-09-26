@@ -39,11 +39,11 @@
 {% if order.pickup_lat and order.pickup_lon %}
 <div class="mt-4">
     <h3>Место подачи (карта)</h3>
-    <img src="https://static-maps.yandex.ru/1.x/?lang=ru_RU&ll={{ order.pickup_lon|unlocalize }},{{ order.pickup_lat|unlocalize }}&z=14&size=600,300&pt={{ order.pickup_lon|unlocalize }},{{ order.pickup_lat|unlocalize }},pm2rdm&apikey={{ YANDEX_MAPS_KEY }}"
+        <img src="https://static-maps.yandex.ru/1.x/?l=map&ll={{ order.pickup_lon|unlocalize }},{{ order.pickup_lat|unlocalize }}&z=14&size=600,300&pt={{ order.pickup_lon|unlocalize }},{{ order.pickup_lat|unlocalize }},pm2rdm&apikey={{ YANDEX_MAPS_KEY }}"
          class="img-fluid rounded shadow"
          alt="Карта подачи">
     <p class="mt-2">
-        <a href="https://yandex.ru/maps/?ll={{ order.pickup_lon|unlocalize }},{{ order.pickup_lat|unlocalize }}&z=14" target="_blank" class="btn btn-outline-primary btn-sm">
+        <a href="https://yandex.ru/maps/?pt={{ order.pickup_lon|unlocalize }},{{ order.pickup_lat|unlocalize }},pm2rdm&z=16&l=map" target="_blank" class="btn btn-outline-primary btn-sm">
            Открыть в Яндекс.Картах
         </a>
     </p>

@@ -133,11 +133,12 @@ YANDEX_ROUTING_API_KEY = 'b2819b48-6238-4e4a-bd5c-5a12c409335d'
 YANDEX_STATIC_API_KEY = '72491f37-0a15-4d26-81e7-17fd201d6115'
 
 # --- Настройки почты (для разработки используем консольный бэкенд) ---
+# новый пароль: "GQVjZNdfBKML97D5bGrJ"
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.mail.ru'
 EMAIL_PORT = 2525
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_HOST_USER = 'al-mar@list.ru'
-EMAIL_HOST_PASSWORD = 'kCdH0SPgsi60E5k1ZC3x'
+EMAIL_HOST_PASSWORD = 'GQVjZNdfBKML97D5bGrJ'
 DEFAULT_FROM_EMAIL = 'al-mar@list.ru'
